@@ -1,0 +1,10 @@
+/* Custom styles for SihaayiExpress */
+
+body {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.container {
+    max-width: 600px;
+}
