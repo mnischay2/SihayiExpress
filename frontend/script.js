@@ -29,35 +29,86 @@ document.addEventListener('DOMContentLoaded', () => {
             printerSelect.innerHTML = '<option value="">Failed to load printers</option>';
         });
 
-    // Load uploaded files from backend uploads folder
-    fetch('http://localhost:5000/uploads/')
-        .then(response => response.text())
-        .then(html => {
-            // Parse the directory listing HTML to extract filenames
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const links = doc.querySelectorAll('a');
-            fileSelect.innerHTML = '';
-            if (links.length > 0) {
-                links.forEach(link => {
-                    const filename = link.textContent;
-                    if (filename !== '../') {
+    // Load uploaded files from backend using new JSON API
+    function loadUploadedFiles(selectedFile) {
+        fetch('http://localhost:5000/api/uploads')
+            .then(response => response.json())
+            .then(data => {
+                fileSelect.innerHTML = '';
+                if (data.files && data.files.length > 0) {
+                    data.files.forEach(filename => {
                         const option = document.createElement('option');
                         option.value = filename;
                         option.textContent = filename;
+                        if (selectedFile && filename === selectedFile) {
+                            option.selected = true;
+                        }
                         fileSelect.appendChild(option);
-                    }
-                });
-            } else {
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = 'No files found';
-                fileSelect.appendChild(option);
+                    });
+                } else {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No files found';
+                    fileSelect.appendChild(option);
+                }
+                updatePrintPreview();
+            })
+            .catch(() => {
+                fileSelect.innerHTML = '<option value="">Failed to load files</option>';
+                updatePrintPreview();
+            });
+    }
+    loadUploadedFiles();
+
+    // Delete file logic
+    const deleteFileBtn = document.getElementById('deleteFileBtn');
+    deleteFileBtn.addEventListener('click', () => {
+        const filename = fileSelect.value;
+        if (!filename) return;
+        if (!confirm(`Are you sure you want to delete ${filename}?`)) return;
+        fetch(`http://localhost:5000/api/uploads/${encodeURIComponent(filename)}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                messageDiv.textContent = data.message;
+                messageDiv.className = 'alert alert-success';
+                loadUploadedFiles();
+            } else if (data.error) {
+                messageDiv.textContent = data.error;
+                messageDiv.className = 'alert alert-danger';
             }
         })
         .catch(() => {
-            fileSelect.innerHTML = '<option value="">Failed to load files</option>';
+            messageDiv.textContent = 'Failed to delete file.';
+            messageDiv.className = 'alert alert-danger';
         });
+    });
+
+    // Print preview logic
+    const printPreview = document.getElementById('printPreview');
+    function updatePrintPreview() {
+        const filename = fileSelect.value;
+        const printer = printerSelect.value;
+        const copies = document.getElementById('copiesInput').value;
+        const orientation = document.getElementById('orientationSelect').value;
+        const color = document.getElementById('colorSelect').value;
+        const paperSize = document.getElementById('paperSizeSelect').value;
+        printPreview.innerHTML =
+            `<strong>File:</strong> ${filename || 'None selected'}<br>` +
+            `<strong>Printer:</strong> ${printer || 'None selected'}<br>` +
+            `<strong>Copies:</strong> ${copies}<br>` +
+            `<strong>Layout:</strong> ${orientation === '3' ? 'Portrait' : 'Landscape'}<br>` +
+            `<strong>Paper Size:</strong> ${paperSize}<br>` +
+            `<strong>Color:</strong> ${color}`;
+    }
+    fileSelect.addEventListener('change', updatePrintPreview);
+    printerSelect.addEventListener('change', updatePrintPreview);
+    document.getElementById('copiesInput').addEventListener('input', updatePrintPreview);
+    document.getElementById('orientationSelect').addEventListener('change', updatePrintPreview);
+    document.getElementById('colorSelect').addEventListener('change', updatePrintPreview);
+    document.getElementById('paperSizeSelect').addEventListener('change', updatePrintPreview);
 
     uploadForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -84,30 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 messageDiv.textContent = data.message;
                 messageDiv.className = 'alert alert-success';
                 // Refresh file list
-                fetch('http://localhost:5000/uploads/')
-                    .then(response => response.text())
-                    .then(html => {
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        const links = doc.querySelectorAll('a');
-                        fileSelect.innerHTML = '';
-                        if (links.length > 0) {
-                            links.forEach(link => {
-                                const filename = link.textContent;
-                                if (filename !== '../') {
-                                    const option = document.createElement('option');
-                                    option.value = filename;
-                                    option.textContent = filename;
-                                    fileSelect.appendChild(option);
-                                }
-                            });
-                        } else {
-                            const option = document.createElement('option');
-                            option.value = '';
-                            option.textContent = 'No files found';
-                            fileSelect.appendChild(option);
-                        }
-                    });
+                loadUploadedFiles(file.name);
             } else if (data.error) {
                 messageDiv.textContent = data.error;
                 messageDiv.className = 'alert alert-danger';

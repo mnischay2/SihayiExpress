@@ -62,11 +62,20 @@
             </div>
 
             <h2>Uploaded Documents</h2>
+
             <div class="mb-3">
                 <label for="fileSelect" class="form-label">Select Document:</label>
-                <select id="fileSelect" class="form-select" required>
-                    <option value="">Loading files...</option>
-                </select>
+                <div class="input-group">
+                    <select id="fileSelect" class="form-select" required>
+                        <option value="">Loading files...</option>
+                    </select>
+                    <button type="button" id="deleteFileBtn" class="btn btn-danger">Delete</button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <h4>Print Preview</h4>
+                <div id="printPreview" class="border p-2 bg-light"></div>
             </div>
 
             <button type="submit" class="btn btn-primary">Print</button>

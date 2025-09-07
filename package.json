@@ -21,5 +21,6 @@
   "bugs": {
     "url": "https://github.com/mnischay2/SihayiExpress/issues"
   },
-  "homepage": "https://github.com/mnischay2/SihayiExpress#readme"
+  "homepage": "https://github.com/mnischay2/SihayiExpress#readme",
+  "devDependencies": {}
 }

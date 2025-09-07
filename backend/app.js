@@ -50,6 +50,18 @@ app.post('/upload', upload.single('file'), (req, res) => {
 // Serve uploaded files
 app.use('/uploads', express.static(UPLOAD_FOLDER));
 
+// API to list uploaded files as JSON
+app.get('/api/uploads', (req, res) => {
+    fs.readdir(UPLOAD_FOLDER, (err, files) => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to list files' });
+        }
+        // Filter only allowed extensions
+        const filtered = files.filter(file => allowedExtensions.includes(path.extname(file).toLowerCase()));
+        res.json({ files: filtered });
+    });
+});
+
 // Get list of printers
 app.get('/printers', (req, res) => {
     exec('lpstat -p -d', (error, stdout, stderr) => {
@@ -113,4 +125,22 @@ app.post('/print', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+// API to delete an uploaded file (moved here after app is defined)
+app.delete('/api/uploads/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const filepath = path.join(UPLOAD_FOLDER, filename);
+    if (!allowedExtensions.includes(path.extname(filename).toLowerCase())) {
+        return res.status(400).json({ error: 'File type not allowed' });
+    }
+    if (!fs.existsSync(filepath)) {
+        return res.status(404).json({ error: 'File not found' });
+    }
+    fs.unlink(filepath, (err) => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to delete file' });
+        }
+        res.json({ message: 'File deleted successfully' });
+    });
 });
