@@ -1,13 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Dynamically determine backend URL based on current hostname
+    const backendUrl = 'http://192.168.29.50:5000';
     const printerSelect = document.getElementById('printerSelect');
     const fileSelect = document.getElementById('fileSelect');
     const printForm = document.getElementById('printForm');
     const messageDiv = document.getElementById('message');
     const uploadForm = document.getElementById('uploadForm');
     const fileInput = document.getElementById('fileInput');
-
+    // ...existing code...
     // Load printers from backend
-    fetch('http://localhost:5000/printers')
+    fetch(backendUrl + '/printers')
         .then(response => response.json())
         .then(data => {
             printerSelect.innerHTML = '';
@@ -31,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load uploaded files from backend using new JSON API
     function loadUploadedFiles(selectedFile) {
-        fetch('http://localhost:5000/api/uploads')
+    fetch(backendUrl + '/api/uploads')
             .then(response => response.json())
             .then(data => {
                 fileSelect.innerHTML = '';
@@ -66,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const filename = fileSelect.value;
         if (!filename) return;
         if (!confirm(`Are you sure you want to delete ${filename}?`)) return;
-        fetch(`http://localhost:5000/api/uploads/${encodeURIComponent(filename)}`, {
+    fetch(`${backendUrl}/api/uploads/${encodeURIComponent(filename)}`, {
             method: 'DELETE'
         })
         .then(response => response.json())
@@ -125,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         formData.append('file', file);
 
-        fetch('http://localhost:5000/upload', {
+    fetch(backendUrl + '/upload', {
             method: 'POST',
             body: formData
         })
@@ -172,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
             paperSize: paperSize
         };
 
-        fetch('http://localhost:5000/print', {
+    fetch(backendUrl + '/print', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
