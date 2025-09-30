@@ -6,15 +6,35 @@ const fs = require('fs');
 const fsPromises = require('fs').promises;
 const { exec, spawn } = require('child_process');
 const util = require('util');
+const { Bonjour } = require('bonjour-service');
 
 const app = express();
 const PORT = 5000;
 const execPromise = util.promisify(exec);
 
 const UPLOAD_FOLDER = path.join(__dirname, 'uploads');
+const TRASH_FOLDER = path.join(__dirname, 'trash');
+const HISTORY_FILE = path.join(__dirname, 'prints.json');
 
-if (!fs.existsSync(UPLOAD_FOLDER)) {
-    fs.mkdirSync(UPLOAD_FOLDER);
+[UPLOAD_FOLDER, TRASH_FOLDER].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+});
+
+// --- History Helper Functions ---
+async function readHistory() {
+    try {
+        await fsPromises.access(HISTORY_FILE);
+        const data = await fsPromises.readFile(HISTORY_FILE, 'utf-8');
+        return JSON.parse(data);
+    } catch (error) {
+        return []; // Return empty array if file doesn't exist or is invalid
+    }
+}
+
+async function writeHistory(history) {
+    await fsPromises.writeFile(HISTORY_FILE, JSON.stringify(history, null, 2), 'utf-8');
 }
 
 const storage = multer.diskStorage({
@@ -26,7 +46,7 @@ const storage = multer.diskStorage({
     }
 });
 
-const allowedExtensions = ['.pdf', '.docx', '.pptx'];
+const allowedExtensions = ['.pdf', '.docx', '.pptx', '.jpg', '.jpeg', '.png'];
 
 const fileFilter = (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
@@ -90,6 +110,56 @@ app.get('/printers', async (req, res) => {
     }
 });
 
+// Get print queue status
+app.get('/api/queue', async (req, res) => {
+    try {
+        // lpstat -o lists active jobs.
+        const { stdout } = await execPromise('lpstat -o');
+        const jobs = stdout
+            .split('\n')
+            .filter(line => line.trim() !== '')
+            .map(line => {
+                // Example line: HP-LaserJet-123   nischay    1024   Mon 01 Jan...
+                const parts = line.split(/\s+/);
+                const [printer, jobId] = parts[0].lastIndexOf('-') > -1 ? parts[0].split(/-(?=[^-]+$)/) : [parts[0], 'N/A'];
+                return {
+                    id: parts[0],
+                    owner: parts[1],
+                    status: parts.slice(2).join(' '), // The rest of the line is the status/date
+                };
+            });
+        res.json({ jobs });
+    } catch (error) {
+        // If lpstat returns an error because there are no jobs, send an empty array.
+        if (error.stderr && error.stderr.includes("no entries")) {
+            return res.json({ jobs: [] });
+        }
+        console.error("Failed to get print queue:", error);
+        res.status(500).json({ error: 'Failed to get print queue', details: error.stderr });
+    }
+});
+
+// API to cancel a print job
+app.delete('/api/queue/:jobId', async (req, res) => {
+    // Sanitize to prevent command injection, although job IDs are typically safe.
+    const jobId = req.params.jobId.replace(/[^a-zA-Z0-9\-]/g, '');
+    if (!jobId) {
+        return res.status(400).json({ error: 'Invalid Job ID' });
+    }
+    try {
+        await execPromise(`cancel ${jobId}`);
+        res.json({ message: `Job '${jobId}' cancelled successfully.` });
+    } catch (error) {
+        res.status(500).json({ error: `Failed to cancel job '${jobId}'.`, details: error.stderr });
+    }
+});
+
+// API to get print history
+app.get('/api/history', async (req, res) => {
+    const history = await readHistory();
+    res.json({ history });
+});
+
 // Submit print job
 app.post('/print', async (req, res) => {
     const { filename, printer, options } = req.body;
@@ -120,7 +190,9 @@ app.post('/print', async (req, res) => {
             'media': options.paperSize, // e.g., 'A4', 'Letter'
             'ColorModel': options.color, // e.g., 'Color', 'Gray'
             'print-quality': options.quality, // e.g., '3' (draft), '4' (normal), '5' (best)
+            'scaling': options.scaling, // e.g., '100' for 100%, or 'fit-to-page'
             'output-order': options.order, // e.g., 'normal', 'reverse'
+            'page-set': options.pageSet, // e.g., 'odd', 'even'
         };
 
         Object.entries(cupsOptions).forEach(([key, value]) => {
@@ -137,34 +209,44 @@ app.post('/print', async (req, res) => {
     lp.stderr.on('data', (data) => stderrData += data.toString());
 
     lp.on('close', (code) => {
-        if (code !== 0) {
+        if (code === 0) {
+            const jobId = stdoutData.trim();
+            // Add to history on success
+            const historyEntry = {
+                jobId: jobId,
+                filename: filename,
+                printer: printer,
+                options: options,
+                timestamp: new Date().toISOString()
+            };
+            readHistory().then(history => {
+                history.unshift(historyEntry); // Add to the beginning of the array
+                writeHistory(history.slice(0, 100)); // Keep only the last 100 entries
+            });
+            res.json({ message: 'Print job submitted successfully', jobId: jobId });
+        } else {
             console.error(`Print command failed with code ${code}:`, stderrData);
             return res.status(500).json({ error: 'Failed to submit print job.', details: stderrData.trim() });
         }
-        res.json({ message: 'Print job submitted successfully', jobId: stdoutData.trim() });
     });
 });
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
+
+    // Announce the service on the local network via mDNS (Bonjour)
+    const bonjour = new Bonjour();
+    bonjour.publish({ name: 'SihayiExpress Backend', type: 'http', port: PORT, host: 'sihayi.local' });
+    console.log('SihayiExpress service announced on the network. You can now try accessing the frontend via http://sihayi.local:<FRONTEND_PORT>');
 });
 
-// API to delete an uploaded file (moved here after app is defined)
+// API to "soft delete" a file by moving it to the trash
 app.delete('/api/uploads/:filename', async (req, res) => {
     // Sanitize filename to prevent directory traversal
     const filename = path.basename(req.params.filename);
-    const filepath = path.join(UPLOAD_FOLDER, filename);
+    const sourcePath = path.join(UPLOAD_FOLDER, filename);
+    const destPath = path.join(TRASH_FOLDER, filename);
 
-    try {
-        // Check if file exists before attempting to delete
-        await fsPromises.access(filepath);
-        await fsPromises.unlink(filepath);
-        res.json({ message: `File '${filename}' deleted successfully.` });
-    } catch (err) {
-        if (err.code === 'ENOENT') {
-            return res.status(404).json({ error: 'File not found' });
-        }
-        console.error(`Failed to delete file ${filename}:`, err);
-        return res.status(500).json({ error: 'Failed to delete file' });
-    }
-});
+    await fsPromises.rename(sourcePath, destPath);
+    res.json({ message: `File '${filename}' moved to trash.` });
+})

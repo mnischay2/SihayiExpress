@@ -1,0 +1,34 @@
+[
+  {
+    "jobId": "HP-LaserJet-123",
+    "filename": "annual-report-2023.pdf",
+    "printer": "Office-Printer-1",
+    "options": {
+      "copies": "1",
+      "orientation": "3",
+      "color": "Grayscale",
+      "paperSize": "A4",
+      "pageRanges": null,
+      "pageSet": "all",
+      "sides": "one-sided",
+      "scaling": ""
+    },
+    "timestamp": "2023-10-27T10:30:00.000Z"
+  },
+  {
+    "jobId": "Brother-Office-456",
+    "filename": "project-slides.pptx",
+    "printer": "Marketing-Printer",
+    "options": {
+      "copies": "5",
+      "orientation": "4",
+      "color": "Color",
+      "paperSize": "Letter",
+      "pageRanges": null,
+      "pageSet": "all",
+      "sides": "two-sided-long-edge",
+      "scaling": ""
+    },
+    "timestamp": "2023-10-27T10:25:15.123Z"
+  }
+]
