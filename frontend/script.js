@@ -96,14 +96,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const copies = document.getElementById('copiesInput').value;
         const orientation = document.getElementById('orientationSelect').value;
         const color = document.getElementById('colorSelect').value;
-        const paperSize = document.getElementById('paperSizeSelect').value;
+        const paperSize = document.getElementById('paperSizeSelect').selectedOptions[0].text;
+        const pageRanges = document.getElementById('pageRangeInput').value;
+        const outputOrder = document.getElementById('outputOrderSelect').selectedOptions[0].text;
+        const sides = document.getElementById('sidesSelect').selectedOptions[0].text;
+
         printPreview.innerHTML =
             `<strong>File:</strong> ${filename || 'None selected'}<br>` +
             `<strong>Printer:</strong> ${printer || 'None selected'}<br>` +
             `<strong>Copies:</strong> ${copies}<br>` +
             `<strong>Layout:</strong> ${orientation === '3' ? 'Portrait' : 'Landscape'}<br>` +
             `<strong>Paper Size:</strong> ${paperSize}<br>` +
-            `<strong>Color:</strong> ${color}`;
+            `<strong>Color:</strong> ${color}<br>` +
+            `<strong>Page Ranges:</strong> ${pageRanges || 'All'}<br>` +
+            `<strong>Print Order:</strong> ${outputOrder}<br>` +
+            `<strong>Duplex:</strong> ${sides}`;
     }
     fileSelect.addEventListener('change', updatePrintPreview);
     printerSelect.addEventListener('change', updatePrintPreview);
@@ -111,6 +118,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('orientationSelect').addEventListener('change', updatePrintPreview);
     document.getElementById('colorSelect').addEventListener('change', updatePrintPreview);
     document.getElementById('paperSizeSelect').addEventListener('change', updatePrintPreview);
+    document.getElementById('pageRangeInput').addEventListener('input', updatePrintPreview);
+    document.getElementById('outputOrderSelect').addEventListener('change', updatePrintPreview);
+    document.getElementById('sidesSelect').addEventListener('change', updatePrintPreview);
 
     uploadForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -160,6 +170,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const orientation = document.getElementById('orientationSelect').value;
         const color = document.getElementById('colorSelect').value;
         const paperSize = document.getElementById('paperSizeSelect').value;
+        const pageRanges = document.getElementById('pageRangeInput').value;
+        const outputOrder = document.getElementById('outputOrderSelect').value;
+        const sides = document.getElementById('sidesSelect').value;
 
         if (!filename || !printer) {
             messageDiv.textContent = 'Please select a printer and a file.';
@@ -171,7 +184,10 @@ document.addEventListener('DOMContentLoaded', () => {
             copies: copies,
             orientation: orientation,
             color: color,
-            paperSize: paperSize
+            paperSize: paperSize,
+            pageRanges: pageRanges,
+            outputOrder: outputOrder,
+            sides: sides,
         };
 
     fetch(backendUrl + '/print', {
