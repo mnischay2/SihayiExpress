@@ -43,7 +43,7 @@ async function executePrintJob(job) {
             'sides': options.duplex,
             'orientation-requested': options['orientation-requested'],
             'media': options.media,
-            'ColorModel': options.ColorModel,
+            'color-model': options['color-model'],
             'print-quality': options['print-quality'],
             'page-set': options['page-set'],
             'output-order': options['output-order'],

@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const orientationSelect = document.getElementById('orientation');
     const paperSizeSelect = document.getElementById('paper-size');
     const colorModelSelect = document.getElementById('color-model');
+    const pageSetSelect = document.getElementById('page-set');
+    const outputOrderSelect = document.getElementById('output-order');
     const appQueueBody = document.getElementById('app-queue-body');
     const osQueueBody = document.getElementById('os-queue-body');
 
@@ -65,6 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
             paperSize: paperSizeSelect.value,
             orientation: orientationSelect.value === '4' ? 'landscape' : 'portrait',
             colorModel: colorModelSelect.value,
+            pageSet: pageSetSelect.value === 'all' ? null : pageSetSelect.value,
+            outputOrder: outputOrderSelect.value === 'normal' ? null : outputOrderSelect.value,
         };
 
         const fileUrl = `/uploads/${filename}`;
@@ -97,6 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
     orientationSelect.addEventListener('change', triggerPreview);
     paperSizeSelect.addEventListener('change', triggerPreview);
     colorModelSelect.addEventListener('change', triggerPreview);
+    pageSetSelect.addEventListener('change', triggerPreview);
+    outputOrderSelect.addEventListener('change', triggerPreview);
 
     fileInput.addEventListener('change', async () => {
         if (fileInput.files.length > 0) {
@@ -131,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 copies: document.getElementById('copies').value,
                 duplex: document.getElementById('duplex').value,
-                ColorModel: document.getElementById('color-model').value,
+                'color-model': document.getElementById('color-model').value,
                 'orientation-requested': document.getElementById('orientation').value,
                 media: document.getElementById('paper-size').value,
                 'print-quality': '5', // Hardcoded to Best

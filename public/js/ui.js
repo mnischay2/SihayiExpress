@@ -133,8 +133,20 @@ const ui = {
         const numPages = pdf.numPages;
         const isColor = options.colorModel === 'Color';
 
-        for (let i = 1; i <= numPages; i++) {
-            const page = await pdf.getPage(i);
+        let pageNumbers = Array.from({ length: numPages }, (_, i) => i + 1);
+
+        if (options.pageSet === 'odd') {
+            pageNumbers = pageNumbers.filter(n => n % 2 !== 0);
+        } else if (options.pageSet === 'even') {
+            pageNumbers = pageNumbers.filter(n => n % 2 === 0);
+        }
+
+        if (options.outputOrder === 'reverse') {
+            pageNumbers.reverse();
+        }
+
+        for (const pageNum of pageNumbers) {
+            const page = await pdf.getPage(pageNum);
             const viewport = page.getViewport({ scale: 3 }); // High-res
 
             const pageDiv = document.createElement('div');
