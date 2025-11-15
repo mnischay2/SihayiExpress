@@ -4,10 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const printForm = document.getElementById('print-form');
     const fileInput = document.getElementById('file-input');
     const fileSelect = document.getElementById('file-select');
+    const orientationSelect = document.getElementById('orientation');
+    const paperSizeSelect = document.getElementById('paper-size');
     const appQueueBody = document.getElementById('app-queue-body');
     const osQueueBody = document.getElementById('os-queue-body');
-    const previewButton = document.getElementById('preview-button');
-    const modalCloseBtn = document.getElementById('modal-close-btn');
 
     // --- 2. Data Loading Functions ---
     const loadFiles = async (selectFilename) => {
@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.renderFiles(files);
             if (selectFilename) {
                 fileSelect.value = selectFilename;
+                // Trigger preview for the newly uploaded file
+                await triggerPreview();
             }
         } catch (err) { ui.showStatus(err.message, 'error'); }
     };
@@ -48,12 +50,50 @@ document.addEventListener('DOMContentLoaded', () => {
         loadOsQueue();
     };
 
-    // --- 3. Event Handlers ---
+    // --- 3. Preview Logic ---
+    const triggerPreview = async () => {
+        const filename = fileSelect.value;
+        if (!filename || filename === '--upload--') {
+            // Don't render a preview if no file is selected
+            return;
+        }
+
+        ui.showPreviewLoading();
+
+        const options = {
+            paperSize: paperSizeSelect.value,
+            orientation: orientationSelect.value === '4' ? 'landscape' : 'portrait',
+        };
+
+        const fileUrl = `/uploads/${filename}`;
+        const extension = filename.split('.').pop().toLowerCase();
+
+        try {
+            if (extension === 'pdf') {
+                await ui.renderPdfPreview(fileUrl, options);
+            } else if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+                ui.renderImagePreview(fileUrl, options);
+            } else {
+                ui.renderUnsupportedPreview(filename);
+            }
+        } catch (err) {
+            ui.renderUnsupportedPreview(filename);
+            ui.showStatus(`Failed to generate preview: ${err.message}`, 'error');
+            console.error(err);
+        }
+    };
+
+    // --- 4. Event Handlers ---
     fileSelect.addEventListener('change', () => {
         if (fileSelect.value === '--upload--') {
-            fileInput.click(); // Trigger the hidden file input
+            fileInput.click();
+        } else {
+            triggerPreview();
         }
     });
+
+    orientationSelect.addEventListener('change', triggerPreview);
+    paperSizeSelect.addEventListener('change', triggerPreview);
 
     fileInput.addEventListener('change', async () => {
         if (fileInput.files.length > 0) {
@@ -64,18 +104,14 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const data = await api.uploadFile(formData);
                 ui.showStatus(data.message);
-                // Refresh file list and select the newly uploaded file
                 await loadFiles(file.name);
             } catch (err) {
                 ui.showStatus(err.message, 'error');
-                // Reset selection if upload fails
                 fileSelect.selectedIndex = 0;
             } finally {
-                // Reset the file input so the 'change' event fires again
                 fileInput.value = '';
             }
         } else {
-            // If user cancels file dialog, reset the dropdown
             fileSelect.selectedIndex = 0;
         }
     });
@@ -135,47 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- REQ-003: Preview Button Logic ---
-    previewButton.addEventListener('click', async () => {
-        const filename = document.getElementById('file-select').value;
-        if (!filename) {
-            ui.showStatus('Please select a file to preview.', 'error');
-            return;
-        }
-
-        // Show loading spinner immediately
-        ui.showPreviewLoading();
-        ui.showPreviewModal();
-
-        const options = {
-            paperSize: document.getElementById('paper-size').value,
-            orientation: document.getElementById('orientation').value === '4' ? 'landscape' : 'portrait',
-            // margins can be added here if needed in the future
-        };
-
-        const fileUrl = `/uploads/${filename}`;
-        const extension = filename.split('.').pop().toLowerCase();
-
-        try {
-            if (extension === 'pdf') {
-                await ui.renderPdfPreview(fileUrl, options);
-            } else if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
-                ui.renderImagePreview(fileUrl, options);
-            } else {
-                ui.renderUnsupportedPreview(filename);
-            }
-        } catch (err) {
-            ui.hidePreviewModal();
-            ui.showStatus(`Failed to generate preview: ${err.message}`, 'error');
-            console.error(err);
-        }
-    });
-
-    modalCloseBtn.addEventListener('click', () => {
-        ui.hidePreviewModal();
-    });
-
-    // --- 4. Initialization ---
+    // --- 5. Initialization ---
     console.log('SihayiExpress App Initialized');
     loadAll(); // Initial data load
     setInterval(loadAll, 3000); // Poll for updates every 3 seconds

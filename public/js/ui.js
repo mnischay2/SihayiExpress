@@ -9,10 +9,7 @@ const ui = {
     printerSelect: document.getElementById('printer-select'),
     appQueueBody: document.getElementById('app-queue-body'),
     osQueueBody: document.getElementById('os-queue-body'),
-    // REQ-003: Add modal elements
-    previewModal: document.getElementById('preview-modal'),
-    previewFrame: document.getElementById('preview-frame'),
-    modalCloseBtn: document.getElementById('modal-close-btn'),
+    previewContent: document.getElementById('preview-content'),
 
     /**
      * Shows a global status message.
@@ -103,22 +100,18 @@ const ui = {
         `).join('');
     },
 
-    // --- REQ-003: Modal Functions ---
     /**
      * Shows a loading spinner in the preview area.
      */
     showPreviewLoading: () => {
-        const previewContent = document.getElementById('preview-content');
-        previewContent.innerHTML = '<div class="spinner"></div>';
-        ui.previewModal.classList.remove('modal-hidden');
+        ui.previewContent.innerHTML = '<div class="spinner"></div>';
     },
 
     /**
      * Renders a placeholder for file types that cannot be previewed.
      */
     renderUnsupportedPreview: (filename) => {
-        const previewContent = document.getElementById('preview-content');
-        previewContent.innerHTML = `
+        ui.previewContent.innerHTML = `
             <div class="preview-page preview-page--letter preview-page--portrait" style="transform: scale(0.8); padding: 2rem;">
                 <div class="preview-page__placeholder">
                     <p class="font-semibold">Preview not available</p>
@@ -134,8 +127,7 @@ const ui = {
      * @param {object} options - { paperSize, orientation }
      */
     renderPdfPreview: async (fileUrl, options) => {
-        const previewContent = document.getElementById('preview-content');
-        previewContent.innerHTML = ''; // Clear previous content
+        ui.previewContent.innerHTML = ''; // Clear previous content
 
         const pdf = await pdfjsLib.getDocument(fileUrl).promise;
         const numPages = pdf.numPages;
@@ -157,7 +149,7 @@ const ui = {
 
             contentDiv.appendChild(canvas);
             pageDiv.appendChild(contentDiv);
-            previewContent.appendChild(pageDiv);
+            ui.previewContent.appendChild(pageDiv);
 
             await page.render({ canvasContext: context, viewport }).promise;
         }
@@ -169,29 +161,12 @@ const ui = {
      * @param {object} options - { paperSize, orientation }
      */
     renderImagePreview: (fileUrl, options) => {
-        const previewContent = document.getElementById('preview-content');
-        previewContent.innerHTML = `
+        ui.previewContent.innerHTML = `
             <div class="preview-page preview-page--${options.paperSize.toLowerCase()} preview-page--${options.orientation}">
                 <div class="preview-page__content">
                     <img src="${fileUrl}" alt="Preview">
                 </div>
             </div>
         `;
-    },
-
-    /**
-     * Shows the preview modal and triggers the rendering.
-     */
-    showPreviewModal: () => {
-        ui.previewModal.classList.remove('modal-hidden');
-    },
-
-    /**
-     * Hides the preview modal and clears the generated content.
-     */
-    hidePreviewModal: () => {
-        ui.previewModal.classList.add('modal-hidden');
-        // Clear content to free up memory
-        document.getElementById('preview-content').innerHTML = '';
     }
 };
