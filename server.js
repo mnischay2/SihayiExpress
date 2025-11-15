@@ -6,7 +6,7 @@ const { initializePrintWorker } = require('./server/services/printWorker');
 
 // --- 1. Configuration & Setup ---
 const app = express();
-const PORT = 5000; // The one and only port for this app
+const PORT = 5354; // The one and only port for this app
 
 // --- 2. Create Required Directories ---
 // We base all paths from __dirname (the location of server.js)
