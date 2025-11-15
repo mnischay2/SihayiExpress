@@ -131,6 +131,7 @@ const ui = {
 
         const pdf = await pdfjsLib.getDocument(fileUrl).promise;
         const numPages = pdf.numPages;
+        const isColor = options.colorModel === 'Color';
 
         for (let i = 1; i <= numPages; i++) {
             const page = await pdf.getPage(i);
@@ -141,6 +142,9 @@ const ui = {
             
             const contentDiv = document.createElement('div');
             contentDiv.className = 'preview-page__content';
+            if (!isColor) {
+                contentDiv.style.filter = 'grayscale(1)';
+            }
 
             const canvas = document.createElement('canvas');
             canvas.width = viewport.width;
@@ -158,12 +162,13 @@ const ui = {
     /**
      * Renders a preview for a single image file.
      * @param {string} fileUrl - The URL of the image.
-     * @param {object} options - { paperSize, orientation }
+     * @param {object} options - { paperSize, orientation, colorModel }
      */
     renderImagePreview: (fileUrl, options) => {
+        const isColor = options.colorModel === 'Color';
         ui.previewContent.innerHTML = `
             <div class="preview-page preview-page--${options.paperSize.toLowerCase()} preview-page--${options.orientation}">
-                <div class="preview-page__content">
+                <div class="preview-page__content" style="${!isColor ? 'filter: grayscale(1);' : ''}">
                     <img src="${fileUrl}" alt="Preview">
                 </div>
             </div>

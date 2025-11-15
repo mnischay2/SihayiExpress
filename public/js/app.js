@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileSelect = document.getElementById('file-select');
     const orientationSelect = document.getElementById('orientation');
     const paperSizeSelect = document.getElementById('paper-size');
+    const colorModelSelect = document.getElementById('color-model');
     const appQueueBody = document.getElementById('app-queue-body');
     const osQueueBody = document.getElementById('os-queue-body');
 
@@ -63,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const options = {
             paperSize: paperSizeSelect.value,
             orientation: orientationSelect.value === '4' ? 'landscape' : 'portrait',
+            colorModel: colorModelSelect.value,
         };
 
         const fileUrl = `/uploads/${filename}`;
@@ -94,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     orientationSelect.addEventListener('change', triggerPreview);
     paperSizeSelect.addEventListener('change', triggerPreview);
+    colorModelSelect.addEventListener('change', triggerPreview);
 
     fileInput.addEventListener('change', async () => {
         if (fileInput.files.length > 0) {
