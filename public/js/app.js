@@ -119,6 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
     printForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        const pageSet = document.getElementById('page-set').value;
+        const outputOrder = document.getElementById('output-order').value;
+
         const jobDetails = {
             filename: document.getElementById('file-select').value,
             printer: document.getElementById('printer-select').value,
@@ -128,7 +131,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 ColorModel: document.getElementById('color-model').value,
                 'orientation-requested': document.getElementById('orientation').value,
                 media: document.getElementById('paper-size').value,
-                'print-quality': document.getElementById('quality').value,
+                'print-quality': '5', // Hardcoded to Best
+                'page-set': pageSet === 'all' ? null : pageSet,
+                'output-order': outputOrder === 'normal' ? null : outputOrder,
             }
         };
 
@@ -168,6 +173,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 ui.showStatus(data.message);
                 loadOsQueue();
             } catch (err) { ui.showStatus(err.message, 'error'); }
+        }
+    });
+
+    const deleteFileBtn = document.getElementById('delete-file-btn');
+    deleteFileBtn.addEventListener('click', async () => {
+        const filename = fileSelect.value;
+        if (!filename || filename === '--upload--') {
+            ui.showStatus('Please select a file to delete.', 'error');
+            return;
+        }
+
+        if (!confirm(`Are you sure you want to delete the file: ${filename}?`)) {
+            return;
+        }
+
+        try {
+            const data = await api.deleteFile(filename);
+            ui.showStatus(data.message);
+            await loadFiles(); // Refresh the file list
+            ui.renderUnsupportedPreview('File deleted.'); // Clear preview
+        } catch (err) {
+            ui.showStatus(err.message, 'error');
         }
     });
 

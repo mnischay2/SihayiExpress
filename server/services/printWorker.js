@@ -40,10 +40,14 @@ async function executePrintJob(job) {
         if (options.copies > 0) args.push('-n', String(options.copies));
         if (options.pageRanges) args.push('-P', options.pageRanges);
         const cupsOptions = {
-            'sides': options.duplex, 'orientation-requested': options.orientation,
-            'media': options.paperSize, 'ColorModel': options.color,
-            'print-quality': options.quality, 'scaling': options.scaling,
-            'output-order': options.order, 'page-set': options.pageSet,
+            'sides': options.duplex,
+            'orientation-requested': options['orientation-requested'],
+            'media': options.media,
+            'ColorModel': options.ColorModel,
+            'print-quality': options['print-quality'],
+            'page-set': options['page-set'],
+            'output-order': options['output-order'],
+            'scaling': options.scaling,
         };
         Object.entries(cupsOptions).forEach(([key, value]) => {
             if (value) args.push('-o', `${key}=${value}`);

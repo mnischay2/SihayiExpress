@@ -71,4 +71,11 @@ const api = {
     cancelOsJob: (jobId) => {
         return fetch(`/api/queue/${jobId}`, { method: 'DELETE' }).then(api.handleResponse);
     },
+
+    /**
+     * Deletes an uploaded file.
+     */
+    deleteFile: (filename) => {
+        return fetch(`/api/uploads/${filename}`, { method: 'DELETE' }).then(api.handleResponse);
+    },
 };
