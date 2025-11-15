@@ -245,3 +245,67 @@ body {
     height: 100%;
     border: 0;
 }
+
+/* New CSS-based Preview Styles */
+.preview-page {
+    background: white;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    margin: 1rem auto;
+    position: relative;
+}
+
+.preview-page--a4.preview-page--portrait { width: 21cm; height: 29.7cm; }
+.preview-page--a4.preview-page--landscape { width: 29.7cm; height: 21cm; }
+.preview-page--letter.preview-page--portrait { width: 21.59cm; height: 27.94cm; }
+.preview-page--letter.preview-page--landscape { width: 27.94cm; height: 21.59cm; }
+
+/* Scale down the large cm-based sizes to fit the modal */
+#preview-content {
+    transform-origin: top center;
+    /* Adjust scale as needed. 0.25 is a good starting point */
+    transform: scale(0.25);
+}
+
+.preview-page__content {
+    position: absolute;
+    top: 1in; /* Default margin */
+    left: 1in;
+    right: 1in;
+    bottom: 1in;
+    overflow: hidden;
+}
+
+.preview-page__content canvas,
+.preview-page__content img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.preview-page__placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: #9ca3af;
+    text-align: center;
+    border: 2px dashed #d1d5db;
+}
+
+/* Loading Spinner */
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4f46e5;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

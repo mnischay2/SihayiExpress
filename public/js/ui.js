@@ -105,19 +105,93 @@ const ui = {
 
     // --- REQ-003: Modal Functions ---
     /**
-     * Shows the preview modal and sets the iframe source.
-     * @param {string} src - The URL for the iframe (e.g., /uploads/file.pdf)
+     * Shows a loading spinner in the preview area.
      */
-    showPreviewModal: (src) => {
-        ui.previewFrame.src = src;
+    showPreviewLoading: () => {
+        const previewContent = document.getElementById('preview-content');
+        previewContent.innerHTML = '<div class="spinner"></div>';
         ui.previewModal.classList.remove('modal-hidden');
     },
 
     /**
-     * Hides the preview modal and clears the iframe source.
+     * Renders a placeholder for file types that cannot be previewed.
+     */
+    renderUnsupportedPreview: (filename) => {
+        const previewContent = document.getElementById('preview-content');
+        previewContent.innerHTML = `
+            <div class="preview-page preview-page--letter preview-page--portrait" style="transform: scale(0.8); padding: 2rem;">
+                <div class="preview-page__placeholder">
+                    <p class="font-semibold">Preview not available</p>
+                    <p class="text-sm">${filename}</p>
+                </div>
+            </div>
+        `;
+    },
+
+    /**
+     * Renders each page of a PDF onto a canvas element.
+     * @param {string} fileUrl - The URL of the PDF file.
+     * @param {object} options - { paperSize, orientation }
+     */
+    renderPdfPreview: async (fileUrl, options) => {
+        const previewContent = document.getElementById('preview-content');
+        previewContent.innerHTML = ''; // Clear previous content
+
+        const pdf = await pdfjsLib.getDocument(fileUrl).promise;
+        const numPages = pdf.numPages;
+
+        for (let i = 1; i <= numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 3 }); // High-res
+
+            const pageDiv = document.createElement('div');
+            pageDiv.className = `preview-page preview-page--${options.paperSize.toLowerCase()} preview-page--${options.orientation}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'preview-page__content';
+
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const context = canvas.getContext('2d');
+
+            contentDiv.appendChild(canvas);
+            pageDiv.appendChild(contentDiv);
+            previewContent.appendChild(pageDiv);
+
+            await page.render({ canvasContext: context, viewport }).promise;
+        }
+    },
+
+    /**
+     * Renders a preview for a single image file.
+     * @param {string} fileUrl - The URL of the image.
+     * @param {object} options - { paperSize, orientation }
+     */
+    renderImagePreview: (fileUrl, options) => {
+        const previewContent = document.getElementById('preview-content');
+        previewContent.innerHTML = `
+            <div class="preview-page preview-page--${options.paperSize.toLowerCase()} preview-page--${options.orientation}">
+                <div class="preview-page__content">
+                    <img src="${fileUrl}" alt="Preview">
+                </div>
+            </div>
+        `;
+    },
+
+    /**
+     * Shows the preview modal and triggers the rendering.
+     */
+    showPreviewModal: () => {
+        ui.previewModal.classList.remove('modal-hidden');
+    },
+
+    /**
+     * Hides the preview modal and clears the generated content.
      */
     hidePreviewModal: () => {
         ui.previewModal.classList.add('modal-hidden');
-        ui.previewFrame.src = 'about:blank'; // Stop content from loading
+        // Clear content to free up memory
+        document.getElementById('preview-content').innerHTML = '';
     }
 };

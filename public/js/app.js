@@ -136,23 +136,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- REQ-003: Preview Button Logic ---
-    previewButton.addEventListener('click', () => {
+    previewButton.addEventListener('click', async () => {
         const filename = document.getElementById('file-select').value;
         if (!filename) {
             ui.showStatus('Please select a file to preview.', 'error');
             return;
         }
 
-        const extension = filename.split('.').pop().toLowerCase();
-        const supportedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif'];
+        // Show loading spinner immediately
+        ui.showPreviewLoading();
+        ui.showPreviewModal();
 
-        if (supportedExtensions.includes(extension)) {
-            // File is viewable in an iframe
-            const fileUrl = `/uploads/${filename}`;
-            ui.showPreviewModal(fileUrl);
-        } else {
-            // File is not viewable
-            ui.showStatus('Preview is only available for PDF and image files.', 'error');
+        const options = {
+            paperSize: document.getElementById('paper-size').value,
+            orientation: document.getElementById('orientation').value === '4' ? 'landscape' : 'portrait',
+            // margins can be added here if needed in the future
+        };
+
+        const fileUrl = `/uploads/${filename}`;
+        const extension = filename.split('.').pop().toLowerCase();
+
+        try {
+            if (extension === 'pdf') {
+                await ui.renderPdfPreview(fileUrl, options);
+            } else if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+                ui.renderImagePreview(fileUrl, options);
+            } else {
+                ui.renderUnsupportedPreview(filename);
+            }
+        } catch (err) {
+            ui.hidePreviewModal();
+            ui.showStatus(`Failed to generate preview: ${err.message}`, 'error');
+            console.error(err);
         }
     });
 
