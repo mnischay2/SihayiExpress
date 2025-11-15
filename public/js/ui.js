@@ -4,7 +4,6 @@
 const ui = {
     // --- Get Element References ---
     statusMessage: document.getElementById('status-message'),
-    fileNameSpan: document.getElementById('file-name'),
     fileInput: document.getElementById('file-input'),
     fileSelect: document.getElementById('file-select'),
     printerSelect: document.getElementById('printer-select'),
@@ -33,13 +32,18 @@ const ui = {
      */
     renderFiles: (files) => {
         const currentVal = ui.fileSelect.value;
-        ui.fileSelect.innerHTML = '<option value="">-- Select a file --</option>';
+        ui.fileSelect.innerHTML = '<option value="" disabled>-- Select a file --</option>';
         files.forEach(file => {
             ui.fileSelect.innerHTML += `<option value="${file}">${file}</option>`;
         });
+        ui.fileSelect.innerHTML += '<option value="--upload--" class="text-indigo-600 font-semibold">Upload New File...</option>';
+        
         // Re-select old value if it's still there
         if (files.includes(currentVal)) {
             ui.fileSelect.value = currentVal;
+        } else if (!currentVal || currentVal === '--upload--') {
+            // If no file was selected, or upload was just finished, select the default
+            ui.fileSelect.selectedIndex = 0;
         }
     },
 
@@ -97,15 +101,6 @@ const ui = {
                 </td>
             </tr>
         `).join('');
-    },
-
-    /**
-     * Resets the file input form.
-     */
-    resetUploadForm: () => {
-        ui.fileNameSpan.textContent = 'Click to select a file';
-        ui.fileNameSpan.classList.remove('text-indigo-600');
-        ui.fileInput.value = ''; // Clear the file input
     },
 
     // --- REQ-003: Modal Functions ---

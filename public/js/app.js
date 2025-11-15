@@ -1,23 +1,22 @@
-// This file is the "controller" that connects the UI, API, and event listeners.
-
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. Get DOM Elements ---
-    const uploadForm = document.getElementById('upload-form');
     const printForm = document.getElementById('print-form');
     const fileInput = document.getElementById('file-input');
-    const fileNameSpan = document.getElementById('file-name');
+    const fileSelect = document.getElementById('file-select');
     const appQueueBody = document.getElementById('app-queue-body');
     const osQueueBody = document.getElementById('os-queue-body');
-    // REQ-003: Add preview button
     const previewButton = document.getElementById('preview-button');
     const modalCloseBtn = document.getElementById('modal-close-btn');
 
     // --- 2. Data Loading Functions ---
-    const loadFiles = async () => {
+    const loadFiles = async (selectFilename) => {
         try {
             const { files } = await api.getFiles();
             ui.renderFiles(files);
+            if (selectFilename) {
+                fileSelect.value = selectFilename;
+            }
         } catch (err) { ui.showStatus(err.message, 'error'); }
     };
 
@@ -50,38 +49,40 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- 3. Event Handlers ---
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files.length > 0) {
-            fileNameSpan.textContent = fileInput.files[0].name;
-            fileNameSpan.classList.add('text-indigo-600');
-        } else {
-            ui.resetUploadForm();
+    fileSelect.addEventListener('change', () => {
+        if (fileSelect.value === '--upload--') {
+            fileInput.click(); // Trigger the hidden file input
         }
     });
 
-    uploadForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (fileInput.files.length === 0) {
-            ui.showStatus('Please select a file to upload.', 'error');
-            return;
-        }
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
+    fileInput.addEventListener('change', async () => {
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
 
-        try {
-            const data = await api.uploadFile(formData);
-            ui.showStatus(data.message);
-            ui.resetUploadForm();
-            loadFiles(); // Refresh file list
-        } catch (err) {
-            ui.showStatus(err.message, 'error');
+            try {
+                const data = await api.uploadFile(formData);
+                ui.showStatus(data.message);
+                // Refresh file list and select the newly uploaded file
+                await loadFiles(file.name);
+            } catch (err) {
+                ui.showStatus(err.message, 'error');
+                // Reset selection if upload fails
+                fileSelect.selectedIndex = 0;
+            } finally {
+                // Reset the file input so the 'change' event fires again
+                fileInput.value = '';
+            }
+        } else {
+            // If user cancels file dialog, reset the dropdown
+            fileSelect.selectedIndex = 0;
         }
     });
 
     printForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // REQ-002: Read all new option values
         const jobDetails = {
             filename: document.getElementById('file-select').value,
             printer: document.getElementById('printer-select').value,

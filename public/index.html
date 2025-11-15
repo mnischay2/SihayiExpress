@@ -31,22 +31,13 @@
 
             <!-- Column 1: Print Job -->
             <div class="lg-col-span-1 space-y-6">
-                <!-- File Upload -->
-                <div class="card">
-                    <h2 class="text-lg font-semibold mb-4">1. Upload File</h2>
-                    <form id="upload-form">
-                        <label for="file-input" class="file-input-label">
-                            <span id="file-name" class="text-gray-500">Click to select a file</span>
-                        </label>
-                        <input type="file" id="file-input" class="hidden" />
-                        <button type="submit" class="btn btn-primary w-full mt-3">Upload</button>
-                    </form>
-                </div>
+                <!-- File input is now hidden and triggered by JS -->
+                <input type="file" id="file-input" class="hidden" />
                 
                 <!-- New Print Job -->
                 <form id="print-form">
                     <div class="card">
-                        <h2 class="text-lg font-semibold mb-4">2. Start New Job</h2>
+                        <h2 class="text-lg font-semibold mb-4">Start New Job</h2>
                         
                         <label for="file-select" class="label">File</label>
                         <select id="file-select" class="input" required></select>
