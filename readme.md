@@ -1,126 +1,146 @@
-SihayiExpress Print Server
+# SihayiExpress Print Server
 
-SihayiExpress is a self-hosted, modular Node.js web application that provides a simple and modern interface for managing print jobs on a local server.
+SihayiExpress is a **self-hosted, modular Node.js web application** that provides a simple and modern interface for managing print jobs on a local server.
 
-It is designed to be a standalone service or easily embedded within another application (like a portal) using an <iframe>. The backend is a robust, asynchronous API that processes print jobs in the background, providing a fast, non-blocking experience for the user.
+It can run standalone or be embedded inside another application (e.g., via an `<iframe>`).  
+The backend is a fast, asynchronous API that processes print jobs in the background.
 
-Features
+---
 
-Asynchronous Print Queue: Submit print jobs instantly. The Node.js backend manages a persistent queue (jobs.json) and processes jobs one by one.
+## 🚀 Features
 
-File Upload: A drag-and-drop interface to upload common file types (PDF, DOCX, PPTX, JPG, PNG).
+### ✅ Asynchronous Print Queue
+- Submit print jobs instantly.
+- Backend manages a persistent queue (`jobs.json`) and processes tasks one-by-one.
 
-Printer Detection: Automatically detects and lists all available printers connected to the server (via lpstat).
+### 📁 File Uploads
+- Drag‑and‑drop upload UI.
+- Supports **PDF, DOCX, PPTX, JPG, PNG**, and more.
 
-Expanded Print Options: A full-featured print dialog with options for:
+### 🖨️ Printer Detection
+- Auto-detects all printers using `lpstat`.
 
-Copies
+### 🎛️ Expanded Print Options
+Includes:
+- Copies  
+- Duplex (Two-Sided)  
+- Color / Grayscale  
+- Orientation: Portrait / Landscape  
+- Paper Size: A4 / Letter  
+- Print Quality: Draft / Normal / Best  
 
-Duplex (Two-Sided)
+### 👀 Print Preview
+- Built‑in modal preview for PDFs and images.
 
-Color Mode (Color / Grayscale)
+### 📦 Queue Management
+- **My Job History:** See pending, printing, completed, failed jobs.  
+- **OS Queue:** View or cancel active CUPS print jobs.
 
-Orientation (Portrait / Landscape)
+### 🧩 Modular Architecture
+- `/server` → Node.js backend API  
+- `/public` → Vanilla JS frontend  
 
-Paper Size (A4 / Letter)
+---
 
-Print Quality (Draft / Normal / Best)
+## 🛠️ Tech Stack
 
-Print Preview: A built-in modal to preview PDF and image files before sending them to the printer.
+**Backend:** Node.js, Express  
+**Frontend:** Vanilla JavaScript (ES6+), HTML5, CSS3  
+**Uploads:** Multer  
+**System:** Requires CUPS (with `lp`, `lpstat`, `cancel`)
 
-Queue Management:
+---
 
-My Job History: View the status of all jobs submitted (pending, printing, completed, failed).
+## 📁 Project Structure
 
-OS Queue: View and cancel active jobs in the system's (CUPS) print queue.
-
-Modular Architecture: A clean separation of concerns between the Node.js backend API (/server) and the vanilla JavaScript frontend (/public).
-
-Tech Stack
-
-Backend: Node.js, Express.js
-
-Frontend: Vanilla JavaScript (ES6+), HTML5, CSS3 (no frameworks)
-
-File Handling: Multer for file uploads.
-
-System: Relies on a Unix-like environment with CUPS (Common Unix Printing System) installed. It uses the lp, lpstat, and cancel command-line tools.
-
-Project Structure
-
+```
 /SihayiExpress/
 |
-|-- /server/              <-- Backend API code
-|   |-- /routes/          <-- API route definitions (print.js, printers.js, uploads.js)
-|   |-- /services/        <-- Backend logic (jobStore.js, printWorker.js)
+|-- /server/              
+|   |-- /routes/          # API endpoints (print.js, printers.js, uploads.js)
+|   |-- /services/        # Logic (jobStore.js, printWorker.js)
 |
-|-- /public/              <-- Frontend (client-side) code
-|   |-- /css/             <-- Plain CSS (styles.css)
-|   |-- /js/              <-- Modular vanilla JS (app.js, api.js, ui.js)
-|   |-- /src/
-|   |   `-- /images/      <-- Logo asset (logo.png)
-|   `-- index.html        <-- The main HTML Single Page Application
+|-- /public/              
+|   |-- /css/             
+|   |-- /js/              
+|   |-- /src/images/      # Logo (logo.png)
+|   `-- index.html        
 |
-|-- /uploads/             <-- (Auto-created) Stores uploaded files
-|-- /trash/               <-- (Auto-created) Stores deleted files
+|-- /uploads/             # Auto-created
+|-- /trash/               # Auto-created
 |
-|-- jobs.json             <-- (Auto-created) The persistent job queue database
+|-- jobs.json             # Auto-created print queue DB
 |-- package.json
-`-- server.js             <-- The main server entry point
+`-- server.js             # Main entry point
+```
 
+---
 
-Setup and Running
+## ⚙️ Setup & Running
 
-Prerequisites:
+### **Prerequisites**
+- Node.js v14+
+- npm
+- Linux/macOS with **CUPS** installed
 
-Node.js (v14+)
+---
 
-npm
-
-A Unix-like operating system (Linux, macOS) with CUPS installed and configured.
-
-Installation:
-
-Clone the repository:
-
+### **1. Clone the Repository**
+```bash
 git clone <your-repo-url>
 cd SihayiExpress
+```
 
-
-Install dependencies:
-
+### **2. Install Dependencies**
+```bash
 npm install
+```
 
+### **3. Add Your Logo**
+Place your logo at:
+```
+SihayiExpress/public/src/images/logo.png
+```
 
-Add your logo:
-Place your company logo at SihayiExpress/public/src/images/logo.png.
+---
 
-Running the Server:
-
-Start the application:
-
+### **4. Start the Server**
+```bash
 node server.js
+```
 
+### **5. Access the Application**
+Open:
+```
+http://localhost:5000
+```
 
-Access the application:
-Open your web browser and navigate to http://localhost:5000.
+---
 
-How It Works
+## 🔧 How It Works
 
-This application runs as a single Node.js server that performs two roles:
+SihayiExpress runs a single Node.js server that acts as:
 
-API Server: It exposes a set of API endpoints under /api/ (e.g., /api/print, /api/uploads) that the frontend communicates with.
+### **1. API Server**
+Endpoints under `/api/` such as:
+- `/api/print`
+- `/api/uploads`
 
-Web Server: It serves all static files (HTML, CSS, JS) from the /public directory, allowing it to host its own frontend.
+### **2. Web Server**
+Serves the frontend from `/public`.
 
-When a user submits a print job, the following happens:
+---
 
-The frontend sends a POST request to /api/print with the job details.
+## 🖨️ Print Job Lifecycle
 
-The Node.js server immediately validates the request, creates a job ID, saves the job to jobs.json with a pending status, and returns a 202 Accepted response.
+1. User submits a print job.
+2. Backend validates, assigns a job ID, saves it to `jobs.json`, and returns `202 Accepted`.
+3. UI updates instantly.
+4. Background worker (`printWorker.js`) pulls pending jobs.
+5. Worker sends job to printer using `lp`.
+6. Status updates: *pending → printing → completed/failed*.
 
-The frontend UI updates instantly.
+---
 
-A background "worker" (printWorker.js) running on an interval detects the pending job, pulls it from the queue, and executes the lp command to send it to the actual printer.
-
-The worker updates the job's status to printing, and finally to completed or failed.
+## 📜 License
+MIT (or your preferred license—edit as needed)
