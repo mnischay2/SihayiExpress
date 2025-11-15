@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SihayiExpress Print Service</title>
+    <!-- REQ-001: Add Favicon -->
+    <link rel="icon" type="image/png" href="/src/images/logo.png">
+    
+    <!-- We use Tailwind CSS from a CDN for simplicity -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Our Custom CSS -->
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="h-full p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header -->
+        <div class="pb-4 border-b border-gray-300 mb-6 flex items-center">
+            <!-- REQ-001: Add Logo -->
+            <img src="/src/images/logo.png" alt="SihayiExpress Logo" class="h-8 w-8 mr-2">
+            <h1 class="text-3xl font-bold text-gray-900">SihayiExpress</h1>
+        </div>
+
+        <!-- Global Status Message -->
+        <div id="status-message" class="hidden p-4 rounded-md mb-4 text-sm"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Column 1: Print Job -->
+            <div class="lg-col-span-1 space-y-6">
+                <!-- File Upload -->
+                <div class="card">
+                    <h2 class="text-lg font-semibold mb-4">1. Upload File</h2>
+                    <form id="upload-form">
+                        <label for="file-input" class="file-input-label">
+                            <span id="file-name" class="text-gray-500">Click to select a file</span>
+                        </label>
+                        <input type="file" id="file-input" class="hidden" />
+                        <button type="submit" class="btn btn-primary w-full mt-3">Upload</button>
+                    </form>
+                </div>
+                
+                <!-- New Print Job -->
+                <form id="print-form">
+                    <div class="card">
+                        <h2 class="text-lg font-semibold mb-4">2. Start New Job</h2>
+                        
+                        <label for="file-select" class="label">File</label>
+                        <select id="file-select" class="input" required></select>
+
+                        <label for="printer-select" class="label mt-4">Printer</label>
+                        <select id="printer-select" class="input" required></select>
+                        
+                        <!-- REQ-002: Expanded Print Options -->
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label for="copies" class="label">Copies</label>
+                                <input type="number" id="copies" value="1" min="1" class="input">
+                            </div>
+                            <div>
+                                <label for="duplex" class="label">Duplex</label>
+                                <select id="duplex" class="input">
+                                    <option value="one-sided">One-Sided</option>
+                                    <option value="two-sided-long-edge">Two-Sided (Book)</option>
+                                    <option value="two-sided-short-edge">Two-Sided (Tablet)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="color-model" class="label">Color Mode</label>
+                                <select id="color-model" class="input">
+                                    <option value="Color">Color</option>
+                                    <option value="Gray">Grayscale</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="orientation" class="label">Orientation</label>
+                                <select id="orientation" class="input">
+                                    <option value="3">Portrait</option>
+                                    <option value="4">Landscape</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="paper-size" class="label">Paper Size</label>
+                                <select id="paper-size" class="input">
+                                    <option value="A4">A4</option>
+                                    <option value="Letter">Letter</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="quality" class="label">Quality</label>
+                                <select id="quality" class="input">
+                                    <option value="4">Normal</option>
+                                    <option value="3">Draft</option>
+                                    <option value="5">Best</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-full mt-6">
+                            Submit Print Job
+                        </button>
+
+                        <!-- REQ-003: Add Preview Button -->
+                        <button type="button" id="preview-button" class="btn btn-secondary w-full mt-2">
+                            Preview Selected File
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Column 2: App Job Queue -->
+            <div class="card lg:col-span-2">
+                <h2 class="text-lg font-semibold mb-4">My Job History</h2>
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th class="th">Status</th>
+                                <th class="th">File</th>
+                                <th class="th">Printer</th>
+                                <th class="th">Submitted</th>
+                                <th class="th-action"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="app-queue-body">
+                            <!-- JS will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Column 3: OS Print Queue -->
+            <div class="card lg:col-span-3">
+                <h2 class="text-lg font-semibold mb-4">Printer OS Queue (Active Jobs)</h2>
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th class="th">OS Job ID</th>
+                                <th class="th">Owner</th>
+                                <th class="th">Status</th>
+                                <th class="th-action"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="os-queue-body">
+                            <!-- JS will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REQ-003: Print Preview Modal -->
+    <div id="preview-modal" class="modal-hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <button id="modal-close-btn" class="modal-close-btn">&times;</button>
+            <iframe id="preview-frame" src="about:blank"></iframe>
+        </div>
+    </div>
+
+    <!-- Our Modular JavaScript Files -->
+    <!-- Order is important! -->
+    <script src="/js/api.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
