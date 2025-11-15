@@ -175,4 +175,18 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('SihayiExpress App Initialized');
     loadAll(); // Initial data load
     setInterval(loadAll, 3000); // Poll for updates every 3 seconds
+
+    const adjustPreviewHeight = () => {
+        const startNewJobBox = document.getElementById('start-new-job-box');
+        const previewContainer = document.getElementById('preview-container');
+        if (startNewJobBox && previewContainer) {
+            const height = startNewJobBox.offsetHeight;
+            previewContainer.style.maxHeight = `${height}px`;
+        }
+    };
+
+    // Adjust height on load
+    window.addEventListener('load', adjustPreviewHeight);
+    // Adjust height on resize
+    window.addEventListener('resize', adjustPreviewHeight);
 });
